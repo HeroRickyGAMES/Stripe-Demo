@@ -3,6 +3,7 @@ package com.herorickystudios.sripeintegrationandroidstudio;
 //Programado por HeroRickyGames
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -17,6 +18,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.stripe.android.PaymentConfiguration;
 import com.stripe.android.paymentsheet.PaymentSheet;
+import com.stripe.android.paymentsheet.PaymentSheetResult;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         PaymentConfiguration.init(this, PUBLIC_KEY);
 
         paymentSheet = new PaymentSheet(this, paymentSheetResult -> {
-
+            onPaymentResult(paymentSheetResult);
         });
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST, "https://api.stripe.com/v1/customers", new Response.Listener<String>() {
@@ -93,6 +95,18 @@ public class MainActivity extends AppCompatActivity {
 
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         requestQueue.add(stringRequest);
+
+    }
+
+    private void onPaymentResult(PaymentSheetResult paymentSheetResult) {
+
+        if(paymentSheetResult instanceof PaymentSheetResult.Completed){
+
+            Toast.makeText(this, "Pagamento feito com sucesso!", Toast.LENGTH_SHORT).show();
+
+        }else{
+            Toast.makeText(this, "Pagamento cancelado ...", Toast.LENGTH_SHORT).show();
+        }
 
     }
 
@@ -155,11 +169,10 @@ public class MainActivity extends AppCompatActivity {
 
                 try {
                     JSONObject object = new JSONObject(response);
-                    ClientSecret = object.getString("client-secret");
+                    ClientSecret = object.getString("client_secret");
 
                     Toast.makeText(MainActivity.this, ClientSecret, Toast.LENGTH_SHORT).show();
 
-                    getClientSecret(customerID, ephericalKey);
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -176,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String, String> header = new HashMap<>();
                 header.put("Authorization", "Bearer " + SECRET_KEY);
-                header.put("Stripe-Version", "2022-11-15");
+                //header.put("Stripe-Version", "2022-11-15");
                 return header;
             }
             @Override
@@ -196,4 +209,22 @@ public class MainActivity extends AppCompatActivity {
         requestQueue.add(stringRequest);
 
     }
+
+    private void PaymentFlow() {
+
+        paymentSheet.presentWithPaymentIntent(
+                ClientSecret,
+                new PaymentSheet.Configuration("Compra de teste xyz", new PaymentSheet.CustomerConfiguration(
+                        customerID,
+                        EphericalKey
+                ))
+        );
+    }
+
+    public void pagarBTNMetodo(View view){
+
+        PaymentFlow();
+
+    }
+
 }
