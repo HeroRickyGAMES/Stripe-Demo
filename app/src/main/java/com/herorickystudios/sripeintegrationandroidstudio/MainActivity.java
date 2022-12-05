@@ -63,11 +63,9 @@ public class MainActivity extends AppCompatActivity {
 
             Intent intent = new Intent(this, paymentActivityInteiro.class);
 
-            valor2 = Integer.parseInt(editPaymentValue.getText().toString() + 00) - Integer.parseInt(valor);
+            System.out.println("Valor 2: " + valor);
 
-            System.out.println("Valor 2: " + valor2);
-
-            intent.putExtra("ValorInteiro", valor2.toString());
+            intent.putExtra("ValorInteiro", valor);
             startActivity(intent);
 
 
@@ -167,16 +165,17 @@ public class MainActivity extends AppCompatActivity {
 
                 double double2 = 1.0/100;
 
-                System.out.println(double2 * double2 * Double.parseDouble(editPaymentValue.getText().toString()));
+                //System.out.println(double2 * double2 * Double.parseDouble(editPaymentValue.getText().toString()));
 
-                double resultado = 1.0 / 100 * Double.parseDouble(editPaymentValue.getText().toString());
+                //double resultado = 1.0 / 100 * Double.parseDouble(editPaymentValue.getText().toString());
+                double resultado = Double.parseDouble(editPaymentValue.getText().toString()) - 1;
 
                 valor = String.valueOf(resultado).replace(".", "");
 
                 System.out.println(valor);
 
                 Map<String, String> params = new HashMap<>();
-                params.put("amount", valor + "0");
+                params.put("amount", 1 + "00");
                 params.put("currency", "brl");
                 params.put("automatic_payment_methods[enabled]", "true");
                 return params;
