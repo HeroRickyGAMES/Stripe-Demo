@@ -1,10 +1,6 @@
 package com.herorickystudios.sripeintegrationandroidstudio;
 
-//Programado por HeroRickyGames
-
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -28,7 +24,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class paymentActivityInteiro extends AppCompatActivity {
 
     String PUBLIC_KEY = "pk_test_51M8uinEu3aGVFmBvJ9n5qZjwwyiK1cnbgvLnFUqC7xDJjxt3CpVCTIksE89QGfo3aPZOWlnYqeEElwgC7ahLgs8u00CGuvGXRe";
     String SECRET_KEY = "sk_test_51M8uinEu3aGVFmBvklARKwzQ0zW1SQKQPilassvznj6eDfrpsMd8BFuc7y9kSl45YFaVxst4Zg4zfnqXIIeOetjC005DQGvAtk";
@@ -39,44 +35,35 @@ public class MainActivity extends AppCompatActivity {
     String valor;
     EditText editPaymentValue;
 
-    Integer valor2;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        editPaymentValue = findViewById(R.id.editPaymentValue);
+        setContentView(R.layout.activity_payment_inteiro);
 
         PaymentConfiguration.init(this, PUBLIC_KEY);
+
+        valor = getIntent().getExtras().getString("ValorInteiro");
+
+        System.out.println(valor);
 
         paymentSheet = new PaymentSheet(this, paymentSheetResult -> {
             onPaymentResult(paymentSheetResult);
         });
- }
 
+        pagarMetodo();
+
+    }
     private void onPaymentResult(PaymentSheetResult paymentSheetResult) {
 
         if(paymentSheetResult instanceof PaymentSheetResult.Completed){
 
             Toast.makeText(this, "Pagamento feito com sucesso!", Toast.LENGTH_SHORT).show();
 
-            Intent intent = new Intent(this, paymentActivityInteiro.class);
-
-            valor2 = Integer.parseInt(editPaymentValue.getText().toString() + 00) - Integer.parseInt(valor);
-
-            System.out.println("Valor 2: " + valor2);
-
-            intent.putExtra("ValorInteiro", valor2.toString());
-            startActivity(intent);
-
 
         }else{
             Toast.makeText(this, "Pagamento cancelado ...", Toast.LENGTH_SHORT).show();
         }
-
     }
-
     private void getEphericalKey(String customerID) {
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST, "https://api.stripe.com/v1/ephemeral_keys", new Response.Listener<String>() {
@@ -87,8 +74,9 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject object = new JSONObject(response);
                     EphericalKey = object.getString("id");
 
-                    Toast.makeText(MainActivity.this, EphericalKey, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(paymentActivityInteiro.this, EphericalKey, Toast.LENGTH_SHORT).show();
 
+                    System.out.println( "EphericalKey " + EphericalKey);
                     getClientSecret(customerID, EphericalKey);
 
                 } catch (JSONException e) {
@@ -127,7 +115,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-
     private void getClientSecret(String customerID, String ephericalKey) {
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST, "https://api.stripe.com/v1/payment_intents", new Response.Listener<String>() {
@@ -138,7 +125,9 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject object = new JSONObject(response);
                     ClientSecret = object.getString("client_secret");
 
-                    Toast.makeText(MainActivity.this, ClientSecret, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(paymentActivityInteiro.this, ClientSecret, Toast.LENGTH_SHORT).show();
+
+                    System.out.println("Client secret " + ClientSecret);
 
                     PaymentFlow();
 
@@ -158,22 +147,11 @@ public class MainActivity extends AppCompatActivity {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String, String> header = new HashMap<>();
                 header.put("Authorization", "Bearer " + SECRET_KEY);
-                //header.put("Stripe-Version", "2022-11-15");
+                header.put("Stripe-Version", "2022-11-15");
                 return header;
             }
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
-
-
-                double double2 = 1.0/100;
-
-                System.out.println(double2 * double2 * Double.parseDouble(editPaymentValue.getText().toString()));
-
-                double resultado = 1.0 / 100 * Double.parseDouble(editPaymentValue.getText().toString());
-
-                valor = String.valueOf(resultado).replace(".", "");
-
-                System.out.println(valor);
 
                 Map<String, String> params = new HashMap<>();
                 params.put("amount", valor + "0");
@@ -188,76 +166,69 @@ public class MainActivity extends AppCompatActivity {
         requestQueue.add(stringRequest);
 
     }
-
     private void PaymentFlow() {
 
         paymentSheet.presentWithPaymentIntent(
                 ClientSecret,
-                new PaymentSheet.Configuration("Taxa do desenvolvedor", new PaymentSheet.CustomerConfiguration(
+                new PaymentSheet.Configuration("Taxa completa", new PaymentSheet.CustomerConfiguration(
                         customerID,
                         EphericalKey
                 ))
         );
     }
 
-    public void pagarBTNMetodo(View view){
+    public void pagarMetodo(){
 
-        if(editPaymentValue.getText().toString().equals("")){
-
-            Toast.makeText(this, "Preencha o campo de valor a pagar", Toast.LENGTH_SHORT).show();
-
-        }else{
-
-            StringRequest stringRequest = new StringRequest(Request.Method.POST, "https://api.stripe.com/v1/customers", new Response.Listener<String>() {
-                @Override
-                public void onResponse(String response) {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, "https://api.stripe.com/v1/customers", new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
 
 
 
-                    try {
-                        JSONObject object = new JSONObject(response);
-                        customerID = object.getString("id");
+                try {
+                    JSONObject object = new JSONObject(response);
+                    customerID = object.getString("id");
 
-                        Toast.makeText(MainActivity.this, customerID, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(paymentActivityInteiro.this, customerID, Toast.LENGTH_SHORT).show();
 
-                        getEphericalKey(customerID);
+                    System.out.println("CustomerID " + customerID);
 
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    getEphericalKey(customerID);
 
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    System.out.println(error.networkResponse.toString());
-
-                    Toast.makeText(MainActivity.this, error.networkResponse.toString(), Toast.LENGTH_SHORT).show();
-
-                }
-            }){
-                @Override
-                public Map<String, String> getHeaders() throws AuthFailureError {
-                    Map<String, String> header = new HashMap<>();
-                    header.put("Authorization", "Bearer " + SECRET_KEY);
-                    header.put("Stripe-Version", "2022-11-15");
-                    return header;
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
 
-                @Nullable
-                @Override
-                protected Map<String, String> getParams() throws AuthFailureError {
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                System.out.println(error.networkResponse.toString());
 
-                    Map<String, String> params = new HashMap<>();
-                    params.put("customer", customerID);
+                Toast.makeText(paymentActivityInteiro.this, error.networkResponse.toString(), Toast.LENGTH_SHORT).show();
 
-                    return super.getParams();
-                }
-            };
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> header = new HashMap<>();
+                header.put("Authorization", "Bearer " + SECRET_KEY);
+                header.put("Stripe-Version", "2022-11-15");
+                return header;
+            }
 
-            RequestQueue requestQueue = Volley.newRequestQueue(this);
-            requestQueue.add(stringRequest);
+            @Nullable
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
 
-        }
+                Map<String, String> params = new HashMap<>();
+                params.put("customer", customerID);
+
+                return super.getParams();
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
     }
 }
